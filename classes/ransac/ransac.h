@@ -2,7 +2,6 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/contrib/contrib.hpp"
 #include <stdio.h>
 #include <iostream>
 
@@ -11,11 +10,11 @@
 class ransac {
 public:
 	ransac();
-	float slope = 1.5;
-	float intersection = 250;
+	float slope = 1.8;
+	float intersection = 180;
 	double d;
 	int allPointsLength;
-	int runRansac(cv::Mat image);
+	void runRansac(cv::Mat image);
 	std::vector<CvPoint2D32f> allPoints;
 	cv::Point linePoint1, linePoint2, testPoint, ransacPoint1, ransacPoint2;
 private:

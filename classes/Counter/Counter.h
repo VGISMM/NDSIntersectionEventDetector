@@ -10,7 +10,6 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/contrib/contrib.hpp"
 
 #import "../Vehicle/Vehicle.h"
 #include "../Kalman/Kalman.h"
@@ -32,16 +31,17 @@ public:
 	cv::Mat frame;
 	int minTrackerCount;
 	//cv::Mat movementFrame;
-	cv::vector<Vehicle> vehicles;
-	cv::vector<Vehicle> myvehicles;
-	cv::vector<Vehicle> candidateVehicles;
-	cv::vector<Vehicle> oldvehicles;
+	std::vector<Vehicle> vehicles;
+	std::vector<Vehicle> myvehicles;
+	std::vector<Vehicle> candidateVehicles;
+	std::vector<Vehicle> oldvehicles;
 	Matrix egoMotionMove = Matrix::eye(4);
 	Matrix previousPose = Matrix::eye(4);
-	
+	float egoMotionX = 0;
+	float egoMotionZ = 0;
 
 	bool firstRun = true;
-
+	cv::Mat overviewMat;
 	Kalman motionKalman;
 	/*
 	#define SameDirection 0
@@ -63,7 +63,7 @@ public:
 								{0.3,0,0,0.3,0,0,0,0.4,0}	 // 5 sameDirectionturnlong
 							   };
 	int eventScores[7] = {0};
-	cv::vector<int> foundVehiclesInframe;
+	std::vector<int> foundVehiclesInframe;
 	
 	void updateCounter(Matrix vOPose);
 	void findNDSEvents(Matrix vOPose);

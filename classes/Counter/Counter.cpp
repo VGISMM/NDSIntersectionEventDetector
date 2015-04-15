@@ -59,7 +59,7 @@ void Counter::updateCounter(Matrix vOPose) {
 	// remove vehicles that have not been detected in the two previous frames
 	for(int k=0;k<myvehicles.size();k++) {
 
-		if((frameCount-myvehicles[k].foundAtFrame)>2)
+		if((frameCount-myvehicles[k].foundAtFrame)>0)
 		{
 			if(myvehicles[k].lifeTime > minLifeTime)
 			{
@@ -86,8 +86,6 @@ void Counter::updateCounter(Matrix vOPose) {
 		myvehicles[vit].predictVehicle();
   		myvehicles[vit].getVehiclePoint();
 
-	
-		
 		// Draw a circle and write distance
 		if((frameCount-myvehicles[vit].foundAtFrame) == 0)
 		{	
@@ -110,28 +108,40 @@ void Counter::updateCounter(Matrix vOPose) {
 		
 void Counter::findNDSEvents(Matrix vOPose){
 
-	float motionScaleFactor = 0.5;
+	float motionScaleFactor = 1.0;
 
-	float egoMotionX = vOPose.val[0][3]*motionScaleFactor;
-	float egoMotionZ = vOPose.val[2][3]*motionScaleFactor;
+	if(vOPose.val[0][3] < 10 && vOPose.val[0][3] > -10 && vOPose.val[2][3] < 10 && vOPose.val[2][3] > -10)
+	{
+		egoMotionX = vOPose.val[0][3]*motionScaleFactor;
+        egoMotionZ = vOPose.val[2][3]*motionScaleFactor;
+	}
+	else
+	{
+		egoMotionX = 0;
+		egoMotionZ = 0;
+	}
 
 	if (firstRun)
 	{
 		motionKalman.initKalman(egoMotionX,egoMotionZ);
 		firstRun = false;
+		egoMotionX = 0;
+		egoMotionZ = 0;
 	}
 	else
 	{
 		motionKalman.kalmanCorrect(egoMotionX, egoMotionZ);
 	    motionKalman.kalmanPredict();
-
+	    egoMotionX = motionKalman.estimated.at<float>(0);
+	    egoMotionZ = motionKalman.estimated.at<float>(1);
+	    //cout << "egoMotionX: " << egoMotionX << "egoMotionZ: " << egoMotionX << endl;
 		//std::cout << "ego x: " << egoMotionX << " Kalman x: " << motionKalman.estimated.at<float>(0) << " ego z: " << egoMotionZ << " Kalman z: " << motionKalman.estimated.at<float>(1) << std::endl;
 	}
 
 	for(int vit=0; vit<myvehicles.size();vit++)
 	{
 		// As we want to use prior knowledge, we wait a few frames.
-		if (myvehicles[vit].world3Dpositions.size()>=2)
+		if (myvehicles[vit].world3Dpositions.size()>1)
 		{
 			// Find average for x and z directions baesd on last two data entries. 
 			float foundVechicleDirectionX=(myvehicles[vit].world3Dpositions[myvehicles[vit].world3Dpositions.size()-1].x - myvehicles[vit].world3Dpositions[myvehicles[vit].world3Dpositions.size()-2].x);
@@ -156,13 +166,13 @@ void Counter::findNDSEvents(Matrix vOPose){
 	
 			if(abs(foundVechicleDirectionX) > minMoveX)
 			{
-				if(foundVechicleDirectionX > motionKalman.estimated.at<float>(0))
+				if(foundVechicleDirectionX > egoMotionX)
 				{
-					finalDirectionX = foundVechicleDirectionX - motionKalman.estimated.at<float>(0);
+					finalDirectionX = foundVechicleDirectionX - egoMotionX;
 				}
 				else
 				{
-					finalDirectionX = foundVechicleDirectionX + motionKalman.estimated.at<float>(0);
+					finalDirectionX = foundVechicleDirectionX + egoMotionX;
 				}
 			}
 			else
@@ -171,13 +181,13 @@ void Counter::findNDSEvents(Matrix vOPose){
 			}
 			if(abs(foundVechicleDirectionZ) > minMoveZ)
 			{
-				if(foundVechicleDirectionZ > motionKalman.estimated.at<float>(1))
+				if(foundVechicleDirectionZ > egoMotionZ)
 				{
-					finalDirectionZ = foundVechicleDirectionZ - motionKalman.estimated.at<float>(1);
+					finalDirectionZ = foundVechicleDirectionZ - egoMotionZ;
 				}
 				else
 				{
-					finalDirectionZ = foundVechicleDirectionZ + motionKalman.estimated.at<float>(1);
+					finalDirectionZ = foundVechicleDirectionZ + egoMotionZ;
 				}
 			}
 			else
@@ -185,6 +195,20 @@ void Counter::findNDSEvents(Matrix vOPose){
 				finalDirectionZ = foundVechicleDirectionZ;
 			}
 			
+			myvehicles[vit].finalDirectionX = finalDirectionX;
+			myvehicles[vit].finalDirectionZ = finalDirectionZ;
+			
+			myvehicles[vit].getVehicleEgomotionCompensatedDirection();
+			
+			line( frame, cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x-10, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y), cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x+10, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y), cv::Scalar( 250, 250, 0 ),  2, 8 );
+			line( frame, cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y-10), cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y+10), cv::Scalar( 250, 250, 0 ),  2, 8 );
+			line(frame, cv::Point(myvehicles[vit].vehicleKalman2DPoint.x, myvehicles[vit].vehicleKalman2DPoint.y),  cv::Point(myvehicles[vit].vehicleKalmanMotionPoint2D.x, myvehicles[vit].vehicleKalmanMotionPoint2D.y), cvScalar(0,255,0), 1, CV_AA);			
+
+			//cout << "Point: " << myvehicles[vit].vehicleKalman3DPoint << "motion point: " << myvehicles[vit].vehicleKalmanMotionPoint3D << endl;
+
+			circle(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*30), 8, cv::Scalar( 0, 0, 180 ), 3, 8 );
+    		line(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*30), cv::Point(myvehicles[vit].vehicleKalmanMotionPoint3D.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalmanMotionPoint3D.z*30), cv::Scalar( 250, 250, 0 ),  2, 8 );
+    		imwrite("../out/overviewMat.png", overviewMat);
 			// disable ego motion:
 			//finalDirectionX = foundVechicleDirectionX;
 			//finalDirectionZ = foundVechicleDirectionZ;
@@ -236,6 +260,11 @@ void Counter::findNDSEvents(Matrix vOPose){
    				myvehicles[vit].movementType[NoMovement]++;
 				putText(frame, "OO", cv::Point(myvehicles[vit].vehicleKalman2DPoint.x-10, myvehicles[vit].vehicleKalman2DPoint.y-40), CV_FONT_HERSHEY_PLAIN, 2, cv::Scalar( 255, 0, 0 ), 3,3);
 			}
+		}
+		else
+		{
+			myvehicles[vit].finalDirectionX = 0;
+			myvehicles[vit].finalDirectionZ = 0;
 		}
 	}
 }

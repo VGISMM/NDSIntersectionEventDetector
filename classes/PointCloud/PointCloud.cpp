@@ -3,9 +3,10 @@ PointCloud::PointCloud()
 {
   focalLenth = 1612.77; //1.25998*1280; // focal length in pixels
   baseLine = 0.239813; // baseline length in m
+
 }
 
-void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counter )
+void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counter, bool night)
 {
   float            x, y, z; 
   int              r, g, b;
@@ -21,7 +22,7 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   pcl::PointCloud<pcl::PointXYZ>::Ptr point_xyzCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
 
 
-
+  //cout << "bool: " << night << endl;
   // Determine the number of pixels spacing per row
   for ( i = 0; i < disp.rows; i++ )
   {
@@ -72,33 +73,41 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   point_xyzCloudPtr->is_dense = false;
 
   //pcl::io::savePCDFileASCII("out/xyz_point_cloud.pcd",*point_xyzCloudPtr);
-  //pcl::io::savePLYFileASCII("out/point_xyzRGBcloud_ptr.ply",*point_xyzRGBcloud_ptr);
+  //pcl::io::savePLYFileASCII("../out/point_xyzCloudPtr.ply",*point_xyzCloudPtr);
+  pcl::io::savePLYFileASCII("../out/point_xyzRGBcloud_ptr.ply",*point_xyzRGBcloud_ptr);
  // std::cout << "PointCloud before filtering has: " << point_xyzCloudPtr->points.size () << " data points." << std::endl; //*
 
   int vIt = 0;
 
   // Filter objects futher than 10 meters away
-  pcl::PassThrough<pcl::PointXYZ> pass;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr point_xyzCloudPtr2to8 (new pcl::PointCloud<pcl::PointXYZ>);
-  pass.setInputCloud (point_xyzCloudPtr);
+  pcl::PassThrough<pcl::PointXYZRGB> pass;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_xyzCloudPtr2to8 (new pcl::PointCloud<pcl::PointXYZRGB>);
+  pass.setInputCloud (point_xyzRGBcloud_ptr);
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits (1.0,9.0);
+  pass.setFilterLimits (1.0,14.0);
   //pass.setFilterLimitsNegative (true);
   pass.filter (*point_xyzCloudPtr2to8);
   
   // Create the filtering object: downsample the dataset using a leaf size of 1cm
-  pcl::VoxelGrid<pcl::PointXYZ> vg;
+  pcl::VoxelGrid<pcl::PointXYZRGB> vg;
   vg.setInputCloud (point_xyzCloudPtr2to8);
   vg.setLeafSize (0.01f, 0.01f, 0.01f);
   vg.filter (*point_xyzCloudPtr2to8);
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered2to8 (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2to8 (new pcl::PointCloud<pcl::PointXYZRGB>);
   // Filter outliers
-  pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
   sor.setInputCloud (point_xyzCloudPtr2to8);
-  sor.setMeanK (200); //night
-  //sor.setMeanK (300); //day
-  sor.setStddevMulThresh (0.9); 
+  if(night)
+  {
+    sor.setMeanK (400); //night
+  }
+  else
+  {
+    sor.setMeanK (400); //day
+  }
+  
+  sor.setStddevMulThresh (0.8); 
   sor.filter (*cloud_filtered2to8);
 
   //std::cout << "PointCloud after filtering has: " << cloud_filtered2to8->points.size ()  << " data points." << std::endl; //*
@@ -106,37 +115,47 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   //pcl::io::savePLYFileASCII("out/cloud_filtered2to8.ply",*cloud_filtered2to8);
 
   // Creating the KdTree object for the search method of the extraction
-  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
   tree->setInputCloud (cloud_filtered2to8);
 
   std::vector<pcl::PointIndices> cluster_indices;
-  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.09); // 2cm
-  ec.setMinClusterSize (500); //night
-  //ec.setMinClusterSize (800); //day
-  ec.setMaxClusterSize (20000); // Night
-  //ec.setMaxClusterSize (100000); // day
+  pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
+  if(night)
+  {
+    ec.setMinClusterSize (500); //night
+    ec.setMaxClusterSize (20000); // Night
+  }
+  else
+  {
+    ec.setMinClusterSize (1200); //day
+    ec.setMaxClusterSize (200000); // day
+  }
+  ec.setClusterTolerance (0.24); 
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud_filtered2to8);
   ec.extract (cluster_indices);
 
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
-      cloud_cluster->points.push_back (cloud_filtered2to8->points[*pit]); //*
+    {
+      cloud_cluster->points.push_back (cloud_filtered2to8->points[*pit]);
+    }
+    //pcl::PointXYZ extraPoint = pcl::PointXYZ(cloud_filtered2to8->points[0].x+0.001, cloud_filtered2to8->points[0].y+0.001, cloud_filtered2to8->points[0].z+0.001);
+    //cloud_cluster->points.push_back(extraPoint);
 
-    cloud_cluster->width = cloud_cluster->points.size ();
+    cloud_cluster->width = cloud_cluster->points.size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = false;
     // Find center points of clusters and remap to 2D image coord
     
-    pcl::PointCloud<pcl::PointXYZ>::Ptr convexHull(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr convexHull(new pcl::PointCloud<pcl::PointXYZRGB>);
     // Object for retrieving the convex hull.
-    pcl::ConvexHull<pcl::PointXYZ> hull;
+    pcl::ConvexHull<pcl::PointXYZRGB> hull;
     hull.setInputCloud(cloud_cluster);
     hull.reconstruct(*convexHull);
- 
+
     int indexMinX=0, indexMaxX=0;
     int indexMinY=0;
     int indexMaxY=0;
@@ -180,11 +199,10 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
     clusterCenter3Dpoint.y = centroid4(1);
     clusterCenter3Dpoint.z = centroid4(2);
 
-   // std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points. " << std::endl;
-
-    /*std::stringstream ss;
-    ss << "out/segmentedClusters/cloud_cluster_" << vIt << ".ply";
-    pcl::io::savePLYFileASCII(ss.str (),*cloud_cluster); */
+    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points. " << std::endl;
+    std::stringstream ss;
+    ss << "../out/cloud_cluster_" << vIt << ".ply";
+    pcl::io::savePLYFileASCII(ss.str (),*cloud_cluster);
     
     Vehicle tmpVehicle;
 

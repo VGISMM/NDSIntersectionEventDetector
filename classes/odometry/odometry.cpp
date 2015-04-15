@@ -26,8 +26,7 @@ Matrix Odometry::egoOdometry(cv::Mat imageLeft, cv::Mat imageLeftOld, cv::Mat im
       }
     }
 
-    // compute visual odometry
-    
+    // compute visual odometry 
     if (viso.process(left_img_data,right_img_data,dims)) {
     
       // on success, update current pose

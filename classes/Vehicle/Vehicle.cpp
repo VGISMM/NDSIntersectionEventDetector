@@ -55,11 +55,27 @@ void Vehicle::getVehiclePoint()
 	vehicleKalman3DPoint.y = vKalman.prediction.at<float>(1);
 	vehicleKalman3DPoint.z = vKalman.prediction.at<float>(2);
 
-	//cout << "vehicleKalman3DPoint.x: " << vehicleKalman3DPoint.x << endl; 
+	//cout << "vehicleKalman3DPoint.z: " << vehicleKalman3DPoint.z << endl; 
 
 	vehicleKalman2DPoint.x = (vKalman.estimated.at<float>(0)*focalLenth)/vKalman.estimated.at<float>(2);
     vehicleKalman2DPoint.y = (vKalman.estimated.at<float>(1)*focalLenth)/vKalman.estimated.at<float>(2);
     vehicleKalman2DPoint.z = (vKalman.estimated.at<float>(0)*focalLenth)/vehicleKalman2DPoint.x;
+
+    //vehicleKalman2DPoints.push_back(cv::Point3f((vehicleKalman3DPoint.x*focalLenth)/vehicleKalman3DPoint.z, (vehicleKalman3DPoint.y*focalLenth)/vehicleKalman3DPoint.z, (vehicleKalman3DPoint.x*focalLenth)/vehicleKalman2DPoint.x));
+
+}
+
+void Vehicle::getVehicleEgomotionCompensatedDirection()
+{	
+	vehicleKalmanMotionPoint3D.x = vehicleKalman3DPoint.x+finalDirectionX;
+	vehicleKalmanMotionPoint3D.y = vehicleKalman3DPoint.y;
+	vehicleKalmanMotionPoint3D.z = vehicleKalman3DPoint.z+finalDirectionZ;
+
+	//cout << "vehicleKalman3DPoint.x: " << vehicleKalman3DPoint.x << endl; 
+
+	vehicleKalmanMotionPoint2D.x = (vehicleKalmanMotionPoint3D.x*focalLenth)/vehicleKalmanMotionPoint3D.z;
+    vehicleKalmanMotionPoint2D.y = (vehicleKalmanMotionPoint3D.y*focalLenth)/vehicleKalmanMotionPoint3D.z;
+    vehicleKalmanMotionPoint2D.z = (vehicleKalmanMotionPoint3D.x*focalLenth)/vehicleKalmanMotionPoint2D.x;
 
     //vehicleKalman2DPoints.push_back(cv::Point3f((vehicleKalman3DPoint.x*focalLenth)/vehicleKalman3DPoint.z, (vehicleKalman3DPoint.y*focalLenth)/vehicleKalman3DPoint.z, (vehicleKalman3DPoint.x*focalLenth)/vehicleKalman2DPoint.x));
 

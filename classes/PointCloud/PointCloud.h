@@ -30,13 +30,11 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/contrib/contrib.hpp"
-
 
 class PointCloud {
 public:
 	PointCloud();
-	void dispToXYZRGB(cv::Mat disp, cv::Mat colorImage, Counter &counter);
+	void dispToXYZRGB(cv::Mat disp, cv::Mat colorImage, Counter &counter, bool night);
 	cv::Point3f projectFrom3Dto2D(cv::Point3f world3Dcoordinate);
 	Vehicle tmpVehicle;
 	float focalLenth, baseLine;

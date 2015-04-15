@@ -3,7 +3,6 @@
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include "opencv2/contrib/contrib.hpp"
 
 #include <stdio.h>
 #include <iostream>
@@ -15,12 +14,14 @@
 class Vehicle {
 public:
 	Vehicle();
-	cv::vector<cv::Point3f> image2Dpositions;
-	cv::vector<cv::Point3f> world3Dpositions;
-	cv::vector<cv::Point3f> widthHeightDepth;
-	//cv::vector<cv::Point3f> directionVectors;
+	std::vector<cv::Point3f> image2Dpositions;
+	std::vector<cv::Point3f> world3Dpositions;
+	std::vector<cv::Point3f> widthHeightDepth;
+	//std::vector<cv::Point3f> directionVectors;
 	cv::Point3f vehicleKalman2DPoint;
 	cv::Point3f vehicleKalman3DPoint;
+
+	cv::Point3f vehicleKalmanMotionPoint2D, vehicleKalmanMotionPoint3D;
 
 	cv::Point3f upperLeftCorner, lowerRightCorner, nearestPoint, rightPoint, leftPoint;
 	float movementType[9]={0};
@@ -28,6 +29,8 @@ public:
 	int bestMatchIndex=0;
 	float avgDist;
 	float minDist;
+	float finalDirectionX = 0;
+	float finalDirectionZ = 0;
 	int minDistFoundAtFrame;
 	//int foundInFront=0;
 	int leftCount=0;
@@ -40,6 +43,7 @@ public:
 	void initKalman(cv::Point3f world3Dpoint);
 	void predictVehicle();
 	void getVehiclePoint();
+	void getVehicleEgomotionCompensatedDirection();
 	void kalmanCorrect(cv::Point3f world3Dpoint);
 	bool detectedBefore=false;
 	void calcAvgDist();

@@ -2,18 +2,20 @@
 using namespace std;
 ransac::ransac(){}
 
-int ransac::runRansac(cv::Mat image) {
+void ransac::runRansac(cv::Mat image) {
     ransac::extractPoints(image);
     allPointsLength = allPoints.size();
-    ransac::createLine();
-    return 1;
+    if(allPointsLength>10)
+    {
+        ransac::createLine();
+    }
 }
 
 void ransac::extractPoints(cv::Mat& img) {
     allPoints.clear();
-    for (int j = 120; j < img.cols-40; j++ ) {
-        for (int i = 300; i < img.rows-20; i++) {
-            if(img.at<uchar>(i, j) > 40){
+    for (int j = 80; j < img.cols-40; j++ ) {
+        for (int i = 280; i < img.rows-20; i++) {
+            if(img.at<uchar>(i, j) > 20){
                 allPoints.push_back(cvPoint2D32f((float)j,(float)i)); 
             } 
         }
@@ -31,7 +33,7 @@ void ransac::createLine() {
         linePoint2.x = allPoints[point2].x;
         linePoint2.y = allPoints[point2].y;
 
-        if(abs(allPoints[point2].x-allPoints[point1].x)>14.1) 
+        if(abs(allPoints[point2].x-allPoints[point1].x)>10.1) 
         {
 
             for(int i=0;i<allPointsLength/3;i++) 
@@ -58,10 +60,10 @@ void ransac::createLine() {
         }
         count++;
     }
-    //cout << "inLiers;" << bestInliers <<endl;
+    //cout << "slope;" << (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x) << "inters;" << (float)((ransacPoint2.y-slope*ransacPoint2.x)-0) << endl;
     if (0!=(ransacPoint1.y-ransacPoint2.y)&&0!=(ransacPoint1.x-ransacPoint2.x))
     {
-        if ((float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)>1.2 && (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)<1.8)
+        if ((float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)>0.8 && (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)<2.8)
         {
             slope = (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x);
         }
