@@ -63,7 +63,7 @@ void ransac::createLine() {
     //cout << "slope;" << (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x) << "inters;" << (float)((ransacPoint2.y-slope*ransacPoint2.x)-0) << endl;
     if (0!=(ransacPoint1.y-ransacPoint2.y)&&0!=(ransacPoint1.x-ransacPoint2.x))
     {
-        if ((float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)>0.8 && (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)<2.8)
+        if ((float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)>0.8 && (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x)<3.8)
         {
             slope = (float)(ransacPoint1.y-ransacPoint2.y)/(float)(ransacPoint1.x-ransacPoint2.x);
         }

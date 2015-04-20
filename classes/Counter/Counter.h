@@ -54,6 +54,9 @@ public:
 	#define RightDirection 7
 	#define NoMovement 8
 	*/
+
+	string movementNames[6] = {"right", "left", "leftturnacross", "oppositeturn", "sameDirectionturnshort", "sameDirectionturnlong"};
+
 	float movementTypes[6][9] = {
 								{0,0,0.2,0,0.2,0,0,0.6,0},   // 0 right - intersection Other vehicle entering intersection - straight across path
 								{0,0,0,0.2,0,0.2,0.6,0,0},   // 1 left - intersection Other vehicle entering intersection - straight across path

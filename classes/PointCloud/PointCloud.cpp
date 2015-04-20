@@ -3,7 +3,6 @@ PointCloud::PointCloud()
 {
   focalLenth = 1612.77; //1.25998*1280; // focal length in pixels
   baseLine = 0.239813; // baseline length in m
-
 }
 
 void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counter, bool night)
@@ -19,8 +18,6 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   // <x> <y> <z> <red> <grn> <blu>
   // ...
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_xyzRGBcloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr point_xyzCloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
-
 
   //cout << "bool: " << night << endl;
   // Determine the number of pixels spacing per row
@@ -29,13 +26,11 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
       for ( j = 0; j < disp.cols; j++ )
       {
           unsigned short disparity = (unsigned short)disp.at<uchar>(i, j);
-
           // do not save invalid points
           if ( disparity>10 && disparity < 255 )
           {
               // convert the 16 bit disparity value to floating point x,y,z
               //triclopsRCD16ToXYZ( triclops, i, j, disparity, &x, &y, &z );
-
               float z = (focalLenth*baseLine)/(float)disparity;
               float x = (j*z)/focalLenth; //i = row
               float y = (i*z)/focalLenth; //j = col
@@ -44,13 +39,7 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
               g = (int)colorImage.at<cv::Vec3b>(i,j)[1];
               r = (int)colorImage.at<cv::Vec3b>(i,j)[2];
 
-              //nPoints++;
-
               pcl::PointXYZRGB pointRGB;
-              pcl::PointXYZ point;
-              point.x = x;
-              point.y = y;
-              point.z = z;
               pointRGB.x = x;
               pointRGB.y = y;
               pointRGB.z = z;
@@ -58,7 +47,6 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
               static_cast<uint32_t>(g) << 8 | static_cast<uint32_t>(b));
               pointRGB.rgb = *reinterpret_cast<float*>(&rgb);
               point_xyzRGBcloud_ptr->points.push_back(pointRGB);
-              point_xyzCloudPtr->points.push_back(point);
           
           }
       }
@@ -68,17 +56,10 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   point_xyzRGBcloud_ptr->height = 1;
   point_xyzRGBcloud_ptr->is_dense = false;
 
-  point_xyzCloudPtr->width = (int) point_xyzRGBcloud_ptr->points.size();
-  point_xyzCloudPtr->height = 1;
-  point_xyzCloudPtr->is_dense = false;
-
-  //pcl::io::savePCDFileASCII("out/xyz_point_cloud.pcd",*point_xyzCloudPtr);
-  //pcl::io::savePLYFileASCII("../out/point_xyzCloudPtr.ply",*point_xyzCloudPtr);
-  pcl::io::savePLYFileASCII("../out/point_xyzRGBcloud_ptr.ply",*point_xyzRGBcloud_ptr);
+  //pcl::io::savePLYFileASCII("../out/point_xyzRGBcloud_ptr.ply",*point_xyzRGBcloud_ptr);
  // std::cout << "PointCloud before filtering has: " << point_xyzCloudPtr->points.size () << " data points." << std::endl; //*
 
   int vIt = 0;
-
   // Filter objects futher than 10 meters away
   pcl::PassThrough<pcl::PointXYZRGB> pass;
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_xyzCloudPtr2to8 (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -100,11 +81,11 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   sor.setInputCloud (point_xyzCloudPtr2to8);
   if(night)
   {
-    sor.setMeanK (400); //night
+    sor.setMeanK (300); //night
   }
   else
   {
-    sor.setMeanK (400); //day
+    sor.setMeanK (500); //day
   }
   
   sor.setStddevMulThresh (0.8); 
@@ -130,7 +111,7 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
     ec.setMinClusterSize (1200); //day
     ec.setMaxClusterSize (200000); // day
   }
-  ec.setClusterTolerance (0.24); 
+  ec.setClusterTolerance (0.25); 
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud_filtered2to8);
   ec.extract (cluster_indices);
@@ -199,10 +180,10 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
     clusterCenter3Dpoint.y = centroid4(1);
     clusterCenter3Dpoint.z = centroid4(2);
 
-    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points. " << std::endl;
+    /*std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points. " << std::endl;
     std::stringstream ss;
     ss << "../out/cloud_cluster_" << vIt << ".ply";
-    pcl::io::savePLYFileASCII(ss.str (),*cloud_cluster);
+    pcl::io::savePLYFileASCII(ss.str (),*cloud_cluster); */
     
     Vehicle tmpVehicle;
 

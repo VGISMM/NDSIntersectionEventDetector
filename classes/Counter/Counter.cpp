@@ -96,7 +96,8 @@ void Counter::updateCounter(Matrix vOPose) {
 			//line( frame, cv::Point(myvehicles[vit].nearestPoint.x, myvehicles[vit].nearestPoint.y), cv::Point(myvehicles[vit].leftPoint.x, myvehicles[vit].leftPoint.y), cv::Scalar( 110, 220, 0 ),  2, 8 );
 
 			rectangle(frame, cv::Point(myvehicles[vit].upperLeftCorner.x, myvehicles[vit].upperLeftCorner.y), cv::Point(myvehicles[vit].lowerRightCorner.x, myvehicles[vit].lowerRightCorner.y), cv::Scalar( 0, 55, 255 ), 2, 4 );
-			circle(frame, cv::Point(myvehicles[vit].vehicleKalman2DPoint.x, myvehicles[vit].vehicleKalman2DPoint.y), 16, cv::Scalar(0, 255, 0 ), 3, 8);
+			//circle(frame, cv::Point(myvehicles[vit].vehicleKalman2DPoint.x, myvehicles[vit].vehicleKalman2DPoint.y), 16, cv::Scalar(0, 255, 0 ), 3, 8);
+			// Nearest point 
 			circle(frame, cv::Point(myvehicles[vit].nearestPoint.x, myvehicles[vit].nearestPoint.y), 6.0, cv::Scalar(255, 0, 0 ), 4, 8);
 			putText(frame, distanceString, cv::Point(myvehicles[vit].nearestPoint.x, myvehicles[vit].nearestPoint.y-20), CV_FONT_HERSHEY_PLAIN, 2, cv::Scalar( 0, 255, 0 ), 3,3);	
 		}
@@ -200,15 +201,19 @@ void Counter::findNDSEvents(Matrix vOPose){
 			
 			myvehicles[vit].getVehicleEgomotionCompensatedDirection();
 			
-			line( frame, cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x-10, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y), cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x+10, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y), cv::Scalar( 250, 250, 0 ),  2, 8 );
-			line( frame, cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y-10), cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y+10), cv::Scalar( 250, 250, 0 ),  2, 8 );
+			// Cross cluster center point projected to 2D
+			line(frame, cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x-10, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y), cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x+10, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y), cv::Scalar( 250, 250, 0 ),  2, 8 );
+			line(frame, cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y-10), cv::Point(myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].x, myvehicles[vit].image2Dpositions[myvehicles[vit].image2Dpositions.size()-1].y+10), cv::Scalar( 250, 250, 0 ),  2, 8 );
+			
+			// Motion vector
 			line(frame, cv::Point(myvehicles[vit].vehicleKalman2DPoint.x, myvehicles[vit].vehicleKalman2DPoint.y),  cv::Point(myvehicles[vit].vehicleKalmanMotionPoint2D.x, myvehicles[vit].vehicleKalmanMotionPoint2D.y), cvScalar(0,255,0), 1, CV_AA);			
 
 			//cout << "Point: " << myvehicles[vit].vehicleKalman3DPoint << "motion point: " << myvehicles[vit].vehicleKalmanMotionPoint3D << endl;
 
-			circle(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*30), 8, cv::Scalar( 0, 0, 180 ), 3, 8 );
-    		line(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*30), cv::Point(myvehicles[vit].vehicleKalmanMotionPoint3D.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalmanMotionPoint3D.z*30), cv::Scalar( 250, 250, 0 ),  2, 8 );
-    		imwrite("../out/overviewMat.png", overviewMat);
+			// Movement overview
+			circle(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*50), 8, cv::Scalar( 0, 0, 180 ), 3, 8 );
+    		line(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*50), cv::Point(myvehicles[vit].vehicleKalmanMotionPoint3D.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalmanMotionPoint3D.z*50), cv::Scalar( 250, 250, 0 ),  2, 8 );
+    		//imwrite("../out/overviewMat.png", overviewMat);
 			// disable ego motion:
 			//finalDirectionX = foundVechicleDirectionX;
 			//finalDirectionZ = foundVechicleDirectionZ;
@@ -304,9 +309,8 @@ void Counter::createVehicleReport()
 		}
 		else
 		{
-			cout << "Event " << k << " was registrated " << eventScores[k] << " times" << endl;
+			cout << "Event: " << movementNames[k] << " was registrated " << eventScores[k] << " times" << endl;
 		}
-		
 	}
 
 	for(int k=0;k<oldvehicles.size();k++) 
@@ -331,7 +335,7 @@ void Counter::classifyMovement(int k)
 	for(int i=0; i<numberOfMovementTypes; i++)
 	{
 		oldvehicles[k].movementType[i]=oldvehicles[k].movementType[i]/sum;
-		cout << "bin " << i << " size: " << oldvehicles[k].movementType[i] << endl;
+		//cout << "bin " << i << " size: " << oldvehicles[k].movementType[i] << endl;
 	}
 
 	for(int i=0; i<numberOfEvents-1; i++)
@@ -351,17 +355,17 @@ void Counter::classifyMovement(int k)
     	{
     		index = i; 
     	}
-    	cout << "This was car: " << k << " match " << i << " was: " << oldvehicles[k].result[i] << endl;              
+    	cout << "Car: " << k << " distance for: " << movementNames[i] << " was: " << oldvehicles[k].result[i] << endl;              
 	}
-	if (oldvehicles[k].result[index] < 0.7)
+	if (oldvehicles[k].result[index] < 0.5)
 	{
 		oldvehicles[k].bestMatchIndex = index;
-		cout << "This was car: " << k << " Best match was: " << index << endl;
+		cout << "This was car: " << k << " Best match was event: " << movementNames[index] << endl;
 	}
 	else
 	{
 		oldvehicles[k].bestMatchIndex = 6;
-		cout << "It was not possilbe to match an event for this car: " << k << " Best match was: " << index << endl;
+		cout << "It was not possilbe to match an event for this car: " << k << " Best match was: " << movementNames[index] << endl;
 	}
 	
 }

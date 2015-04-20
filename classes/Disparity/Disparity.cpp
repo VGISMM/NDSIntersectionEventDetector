@@ -12,7 +12,7 @@ Disparity::Disparity()
   sgbm->setUniquenessRatio(1); //10 for daytime
   sgbm->setSpeckleWindowSize(3); //2
   sgbm->setSpeckleRange(1); //
-  sgbm->setDisp12MaxDiff(1);
+  sgbm->setDisp12MaxDiff(10);
   sgbm->setMode(cv::StereoSGBM::MODE_SGBM); //StereoSGBM::MODE_SGBM || cv::StereoSGBM::MODE_HH
 }
 
