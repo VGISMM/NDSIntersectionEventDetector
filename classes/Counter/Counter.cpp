@@ -3,7 +3,7 @@ Counter::Counter() {
 	frameCount=0;
 	minTrackerCount=2;
 	newVehicle=true;
-	minVehicleRadius=0.9;
+	minVehicleRadius=1.4;
 
 }
 
@@ -59,7 +59,7 @@ void Counter::updateCounter(Matrix vOPose) {
 	// remove vehicles that have not been detected in the two previous frames
 	for(int k=0;k<myvehicles.size();k++) {
 
-		if((frameCount-myvehicles[k].foundAtFrame)>0)
+		if((frameCount-myvehicles[k].foundAtFrame)>1)
 		{
 			if(myvehicles[k].lifeTime > minLifeTime)
 			{
@@ -67,7 +67,7 @@ void Counter::updateCounter(Matrix vOPose) {
 				stringstream distanceText;
 				distanceText << "Car: " << oldvehicles.size()+1 << " stored";
 				distanceString = distanceText.str();
-				putText(frame, distanceString, cv::Point(imageWidth-280, 30), CV_FONT_HERSHEY_PLAIN, 1, cv::Scalar( 0, 0, 255), 3,3);	
+				putText(frame, distanceString, cv::Point(imageWidth-280, 30), CV_FONT_HERSHEY_PLAIN, 2, cv::Scalar( 0, 0, 255), 5,5);	
 		
 				myvehicles[k].calcAvgDist();
 				oldvehicles.push_back(myvehicles[k]);
@@ -121,7 +121,7 @@ void Counter::findNDSEvents(Matrix vOPose){
 		egoMotionX = 0;
 		egoMotionZ = 0;
 	}
-
+	
 	if (firstRun)
 	{
 		motionKalman.initKalman(egoMotionX,egoMotionZ);
@@ -211,8 +211,8 @@ void Counter::findNDSEvents(Matrix vOPose){
 			//cout << "Point: " << myvehicles[vit].vehicleKalman3DPoint << "motion point: " << myvehicles[vit].vehicleKalmanMotionPoint3D << endl;
 
 			// Movement overview
-			circle(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*50), 8, cv::Scalar( 0, 0, 180 ), 3, 8 );
-    		line(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalman3DPoint.z*50), cv::Point(myvehicles[vit].vehicleKalmanMotionPoint3D.x*50+100, imageHeight-20-myvehicles[vit].vehicleKalmanMotionPoint3D.z*50), cv::Scalar( 250, 250, 0 ),  2, 8 );
+			circle(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*topViewScaleing+128, imageHeight-50-myvehicles[vit].vehicleKalman3DPoint.z*topViewScaleing), 8, cv::Scalar( 0, 0, 180 ), 3, 8 );
+    		line(overviewMat, cv::Point(myvehicles[vit].vehicleKalman3DPoint.x*topViewScaleing+128, imageHeight-50-myvehicles[vit].vehicleKalman3DPoint.z*topViewScaleing), cv::Point(myvehicles[vit].vehicleKalmanMotionPoint3D.x*topViewScaleing+128, imageHeight-50-myvehicles[vit].vehicleKalmanMotionPoint3D.z*topViewScaleing), cv::Scalar( 250, 250, 0 ),  2, 8 );
     		//imwrite("../out/overviewMat.png", overviewMat);
 			// disable ego motion:
 			//finalDirectionX = foundVechicleDirectionX;

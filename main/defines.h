@@ -4,10 +4,10 @@
 
 #define distanceMultiplier 2.0
 #define egoCarOfset 2.0
-#define minLifeTime 6
+#define minLifeTime 7
 
-#define minMoveX 0.06
-#define minMoveZ 0.06
+#define minMoveX 0.08
+#define minMoveZ 0.1
 
 #define SameDirection 0
 #define OppositeDirection 1
@@ -26,5 +26,7 @@
 
 #define centerLeft (imageWidth/2)-100
 #define centerRight (imageWidth/2)+200
+
+#define topViewScaleing 25
 
 #define GPU

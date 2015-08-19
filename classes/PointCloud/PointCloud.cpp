@@ -65,7 +65,7 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_xyzCloudPtr2to8 (new pcl::PointCloud<pcl::PointXYZRGB>);
   pass.setInputCloud (point_xyzRGBcloud_ptr);
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits (1.0,14.0);
+  pass.setFilterLimits (1.0,12.0);
   //pass.setFilterLimitsNegative (true);
   pass.filter (*point_xyzCloudPtr2to8);
   
@@ -82,13 +82,14 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   if(night)
   {
     sor.setMeanK (300); //night
+    sor.setStddevMulThresh (0.9); 
   }
   else
   {
-    sor.setMeanK (500); //day
+    sor.setMeanK (600); //day
+    sor.setStddevMulThresh (0.7); 
   }
   
-  sor.setStddevMulThresh (0.8); 
   sor.filter (*cloud_filtered2to8);
 
   //std::cout << "PointCloud after filtering has: " << cloud_filtered2to8->points.size ()  << " data points." << std::endl; //*
@@ -105,13 +106,15 @@ void PointCloud::dispToXYZRGB( cv::Mat disp, cv::Mat colorImage, Counter &counte
   {
     ec.setMinClusterSize (500); //night
     ec.setMaxClusterSize (20000); // Night
+    ec.setClusterTolerance (0.45); 
   }
   else
   {
-    ec.setMinClusterSize (1200); //day
+    ec.setMinClusterSize (1600); //day
     ec.setMaxClusterSize (200000); // day
+    ec.setClusterTolerance (0.35); 
   }
-  ec.setClusterTolerance (0.25); 
+  
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud_filtered2to8);
   ec.extract (cluster_indices);

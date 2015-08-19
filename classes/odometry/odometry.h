@@ -4,7 +4,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <stdio.h>
 #include <iostream>
-#import <viso_stereo.h>
+#include <viso_stereo.h>
 #include "../../main/defines.h"
 
 //using namespace cv;
@@ -13,9 +13,8 @@ using namespace std;
 class Odometry {
 public:
 	Odometry();
-	Matrix egoOdometry(cv::Mat imageLeft, cv::Mat imageLeftOld, cv::Mat imageRight, cv::Mat imageRightOld);
-	Matrix pose;
+	void egoOdometry(cv::Mat imageLeft, cv::Mat imageRight, VisualOdometryStereo *viso);
+	Matrix pose, cumulativePose;
 private:
-    VisualOdometryStereo::parameters param;
     
 };

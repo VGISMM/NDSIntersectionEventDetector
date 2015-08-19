@@ -39,5 +39,5 @@ public:
 	Vehicle tmpVehicle;
 	float focalLenth, baseLine;
 private:
-	bool night = true;
+	
 };
